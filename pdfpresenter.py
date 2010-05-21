@@ -6,14 +6,45 @@ By: Tom Wambold <tom5760@gmail.com>
 
 import sys
 import os.path
+from datetime import time 
 
-import poppler
 import gtk
+import gobject
+import pango
+import poppler
 
 BACKGROUND_COLOR = '#000000'
 
+class Timer(gtk.Label):
+    def __init__(self):
+        super(Timer, self).__init__()
+        self.set_use_markup(True)
+        self.started = False
+
+    def start(self):
+        self.cur_time = 0
+        self.started = True
+        gobject.timeout_add(1000, self.update_timer)
+
+    def stop(self):
+        self.started = False
+
+    def update_timer(self):
+        self.cur_time += 1
+        timeobj = Timer.seconds_to_time(self.cur_time)
+        self.set_markup('<span color="blue" size="xx-large">{0}</span>'.format(
+            timeobj.strftime('%H:%M:%S')))
+        return self.started
+
+    @staticmethod
+    def seconds_to_time(seconds):
+        hours = seconds // 3600
+        minutes = seconds // 60 % 60
+        seconds = seconds - (3600 * hours) - (60 * minutes)
+        return time(hours, minutes, seconds)
+
 class SlideWindow(gtk.Window):
-    def __init__(self, document, page_number):
+    def __init__(self, document, page_number, timer=None):
         super(SlideWindow, self).__init__()
         self.document = document
         self.page_number = page_number
@@ -33,7 +64,14 @@ class SlideWindow(gtk.Window):
         hbox.pack_start(self.drawing, False, False)
         hbox.pack_start(gtk.Label(''), True, False)
 
-        self.add(hbox)
+        vbox = gtk.VBox()
+        vbox.pack_start(hbox)
+
+        if timer is not None:
+            vbox.pack_start(timer)
+            timer.start()
+
+        self.add(vbox)
 
     def next_slide(self):
         self.set_cur_page(self.page_number + 2)
@@ -80,7 +118,7 @@ class PdfPresenter(object):
         self.document = poppler.document_new_from_file(pdf_path, None)
 
         self.main_window = SlideWindow(self.document, 0)
-        self.note_window = SlideWindow(self.document, 1)
+        self.note_window = SlideWindow(self.document, 1, Timer())
 
         self.is_fullscreen = False
 
