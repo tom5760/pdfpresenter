@@ -68,7 +68,7 @@ class SlideWindow(gtk.Window):
         hscale = wheight / pheight
         scale = wscale if wscale < hscale else hscale
 
-        self.drawing.set_size_request(pwidth * scale, pheight * scale)
+        self.drawing.set_size_request(int(pwidth * scale), int(pheight * scale))
 
         # Draw the page
         context.scale(scale, scale)
