@@ -56,6 +56,10 @@ class SlideWindow(gtk.Window):
 
         context = self.drawing.window.cairo_create()
 
+        # Clear the page
+        context.set_source_rgb(255, 255, 255)
+        context.paint()
+
         # Scale and keep aspect ratio
         wscale = wwidth / pwidth
         hscale = wheight / pheight
@@ -63,6 +67,7 @@ class SlideWindow(gtk.Window):
 
         self.drawing.set_size_request(pwidth * scale, pheight * scale)
 
+        # Draw the page
         context.scale(scale, scale)
         self.page.render(context)
 
