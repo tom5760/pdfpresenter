@@ -10,6 +10,8 @@ import os.path
 import poppler
 import gtk
 
+BACKGROUND_COLOR = '#000000'
+
 class SlideWindow(gtk.Window):
     def __init__(self, document, page_number):
         super(SlideWindow, self).__init__()
@@ -18,6 +20,7 @@ class SlideWindow(gtk.Window):
         self.page = document.get_page(page_number)
 
         self.set_title(document.props.title)
+        self.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse(BACKGROUND_COLOR))
         self.add_events(gtk.gdk.KEY_PRESS_MASK |
                         gtk.gdk.BUTTON_PRESS_MASK)
 
