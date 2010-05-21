@@ -20,21 +20,33 @@ class Timer(gtk.Label):
         super(Timer, self).__init__()
         self.set_use_markup(True)
         self.started = False
+        self.cur_time = 0
+        self.update_label()
 
     def start(self):
-        self.cur_time = 0
+        self.reset()
+        self.unpause()
+
+    def unpause(self):
         self.started = True
         gobject.timeout_add(1000, self.update_timer)
 
     def stop(self):
         self.started = False
 
+    def reset(self):
+        self.cur_time = 0
+        self.update_label()
+
     def update_timer(self):
         self.cur_time += 1
+        self.update_label()
+        return self.started
+
+    def update_label(self):
         timeobj = Timer.seconds_to_time(self.cur_time)
         self.set_markup('<span color="blue" size="xx-large">{0}</span>'.format(
             timeobj.strftime('%H:%M:%S')))
-        return self.started
 
     @staticmethod
     def seconds_to_time(seconds):
@@ -69,7 +81,7 @@ class SlideWindow(gtk.Window):
 
         if timer is not None:
             vbox.pack_start(timer)
-            timer.start()
+            self.timer = timer
 
         self.add(vbox)
 
@@ -149,6 +161,15 @@ class PdfPresenter(object):
             self.note_window.fullscreen()
         self.is_fullscreen = not self.is_fullscreen
 
+    def toggle_timer(self):
+        if self.note_window.timer.started:
+            self.note_window.timer.stop()
+        else:
+            self.note_window.timer.unpause()
+
+    def reset_timer(self):
+        self.note_window.timer.reset()
+
     def on_key_press(self, widget, event):
         if event.type != gtk.gdk.KEY_PRESS:
             return
@@ -160,6 +181,10 @@ class PdfPresenter(object):
             self.prev_slide()
         elif name == 'f':
             self.toggle_fullscreen()
+        elif name == 'space':
+            self.toggle_timer()
+        elif name == 'r':
+            self.reset_timer()
 
     def on_button_press(self, widget, event):
         if event.type != gtk.gdk.BUTTON_PRESS:
