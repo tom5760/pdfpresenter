@@ -1,0 +1,78 @@
+\documentclass{beamer}
+
+\usetheme{Hannover}
+
+% Uncomment this if you use the notes
+\usepackage{pgfpages}
+\setbeameroption{show notes}                  % Notes on separate page
+%\setbeameroption{show notes on second screen} % Page is larger to include notes
+
+% Removes the silly controls
+\setbeamertemplate{navigation symbols}{}
+% Put slide numbers at the bottom
+\setbeamertemplate{footline}[page number]
+
+\title[PdfPresenter]{PdfPresenter}
+\subtitle{Use speakers notes in Beamer presentations!}
+\author[Tom Wambold]{Tom Wambold \\\href{mailto:tom5760@gmail.com}{tom5760@gmail.com}}
+\date{\today}
+
+% Do this for notes.
+% \note[item]{Baz}
+
+% To include a logo, seems to not work right with all themes
+%\logo{\includegraphics[width=3cm]{../logo}}
+
+\begin{document}
+
+%------------------------------------------------------------------------------
+
+\begin{frame}
+    \titlepage
+    \note[item]{Hello world!}
+\end{frame}
+
+%------------------------------------------------------------------------------
+
+\section{PdfPresenter}
+
+\begin{frame}{PdfPresenter!}
+    \begin{itemize}
+        \item Python program for PDF slide presentations
+        \item Focuses on dual-monitor support for Beamer speaker's notes
+    \end{itemize}
+    \note[item]{Beamer and \LaTeX are awesome!}
+    \note[item]{PDF viewers don't really do multi-monitor stuff well.}
+    \note[item]{Speakers notes can be useful.}
+\end{frame}
+
+%------------------------------------------------------------------------------
+\section{Cool Stuff}
+
+\begin{frame}{Cool Stuff}
+    \begin{itemize}
+        \item Rockets
+        \item Lasers
+        \item Robots
+        \item Space
+    \end{itemize}
+    \note[item]{Rockets are cool.}
+    \note[item]{They help you get to space.}
+    \note[item]{Watch out for robots though, they might turn on you.}
+    \note[item]{We can use lasers to defeat them.}
+\end{frame}
+
+%------------------------------------------------------------------------------
+
+\section{Conclusion}
+\begin{frame}{Questions?}
+    \begin{itemize}
+        \item Can send comments/questions/patches to me at
+            \href{mailto:tom5760@gmail.com}{tom5760@gmail.com}
+    \end{itemize}
+    \note[item]{Hope it is useful to you!}
+\end{frame}
+
+%------------------------------------------------------------------------------
+
+\end{document}
