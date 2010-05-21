@@ -10,7 +10,6 @@ from datetime import time
 
 import gtk
 import gobject
-import pango
 import poppler
 
 BACKGROUND_COLOR = '#000000'
