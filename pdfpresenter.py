@@ -82,6 +82,8 @@ class PdfPresenter(object):
         self.main_window = SlideWindow(self.document, 0)
         self.note_window = SlideWindow(self.document, 1)
 
+        self.is_fullscreen = False
+
         for w in (self.main_window, self.note_window):
             w.connect('key-press-event', self.on_key_press)
             w.connect('button-press-event', self.on_button_press)
@@ -100,6 +102,15 @@ class PdfPresenter(object):
         self.main_window.prev_slide()
         self.note_window.prev_slide()
 
+    def toggle_fullscreen(self):
+        if self.is_fullscreen:
+            self.main_window.unfullscreen()
+            self.note_window.unfullscreen()
+        else:
+            self.main_window.fullscreen()
+            self.note_window.fullscreen()
+        self.is_fullscreen = not self.is_fullscreen
+
     def on_key_press(self, widget, event):
         if event.type != gtk.gdk.KEY_PRESS:
             return
@@ -109,6 +120,8 @@ class PdfPresenter(object):
             self.next_slide()
         elif name in ('Left', 'Up'):
             self.prev_slide()
+        elif name == 'f':
+            self.toggle_fullscreen()
 
     def on_button_press(self, widget, event):
         if event.type != gtk.gdk.BUTTON_PRESS:
