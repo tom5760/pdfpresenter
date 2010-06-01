@@ -14,48 +14,8 @@ import poppler
 
 BACKGROUND_COLOR = '#000000'
 
-class Timer(gtk.Label):
-    def __init__(self):
-        super(Timer, self).__init__()
-        self.set_use_markup(True)
-        self.started = False
-        self.cur_time = 0
-        self.update_label()
-
-    def start(self):
-        self.reset()
-        self.unpause()
-
-    def unpause(self):
-        self.started = True
-        gobject.timeout_add(1000, self.update_timer)
-
-    def stop(self):
-        self.started = False
-
-    def reset(self):
-        self.cur_time = 0
-        self.update_label()
-
-    def update_timer(self):
-        self.cur_time += 1
-        self.update_label()
-        return self.started
-
-    def update_label(self):
-        timeobj = Timer.seconds_to_time(self.cur_time)
-        self.set_markup('<span color="blue" size="xx-large">{0}</span>'.format(
-            timeobj.strftime('%H:%M:%S')))
-
-    @staticmethod
-    def seconds_to_time(seconds):
-        hours = seconds // 3600
-        minutes = seconds // 60 % 60
-        seconds = seconds - (3600 * hours) - (60 * minutes)
-        return time(hours, minutes, seconds)
-
 class SlideWindow(gtk.Window):
-    def __init__(self, document, page_number, timer=None):
+    def __init__(self, document, page_number):
         super(SlideWindow, self).__init__()
         self.document = document
         self.page_number = page_number
@@ -75,14 +35,7 @@ class SlideWindow(gtk.Window):
         hbox.pack_start(self.drawing, False, False)
         hbox.pack_start(gtk.Label(''), True, False)
 
-        vbox = gtk.VBox()
-        vbox.pack_start(hbox)
-
-        if timer is not None:
-            vbox.pack_start(timer)
-            self.timer = timer
-
-        self.add(vbox)
+        self.add(hbox)
 
     def next_slide(self):
         self.set_cur_page(self.page_number + 2)
@@ -129,7 +82,7 @@ class PdfPresenter(object):
         self.document = poppler.document_new_from_file(pdf_path, None)
 
         self.main_window = SlideWindow(self.document, 0)
-        self.note_window = SlideWindow(self.document, 1, Timer())
+        self.note_window = SlideWindow(self.document, 1)
 
         self.is_fullscreen = False
 
@@ -160,15 +113,6 @@ class PdfPresenter(object):
             self.note_window.fullscreen()
         self.is_fullscreen = not self.is_fullscreen
 
-    def toggle_timer(self):
-        if self.note_window.timer.started:
-            self.note_window.timer.stop()
-        else:
-            self.note_window.timer.unpause()
-
-    def reset_timer(self):
-        self.note_window.timer.reset()
-
     def on_key_press(self, widget, event):
         if event.type != gtk.gdk.KEY_PRESS:
             return
@@ -180,10 +124,6 @@ class PdfPresenter(object):
             self.prev_slide()
         elif name == 'f':
             self.toggle_fullscreen()
-        elif name == 'space':
-            self.toggle_timer()
-        elif name == 'r':
-            self.reset_timer()
 
     def on_button_press(self, widget, event):
         if event.type != gtk.gdk.BUTTON_PRESS:
