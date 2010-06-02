@@ -74,12 +74,11 @@ class DocumentManager(object):
         return self.width, self.height
 
     def offset_page(self, offset):
-        self.page_number += offset
-        if self.page_number < 0:
-            self.page_number = 0
-        elif self.page_number >= self.document.get_n_pages():
-            self.page_number = self.document.get_n_pages() - 1
-        self.current_page = self.document.get_page(self.page_number)
+        new_number = self.page_number + offset
+        if new_number < 0 or new_number >= self.document.get_n_pages():
+            return
+        self.page_number = new_number
+        self.current_page = self.document.get_page(new_number)
 
     def invalidate_cache(self):
         self.pages = [None for x in xrange(self.document.get_n_pages())]
