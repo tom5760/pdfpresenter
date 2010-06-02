@@ -73,6 +73,9 @@ class DocumentManager(object):
             self.page_number = self.document.get_n_pages() - 1
         self.current_page = self.document.get_page(self.page_number)
 
+    def invalidate_cache(self):
+        self.pages = [None for x in xrange(self.document.get_n_pages())]
+
 class SlideWindow(gtk.Window):
     def __init__(self, manager, page_number=0):
         super(SlideWindow, self).__init__()
