@@ -39,11 +39,9 @@ class DocumentManager(object):
         return page
 
     def render_page(self):
-        # Scale and keep aspect ratio
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32,
                 self.width, self.height)
         context = cairo.Context(surface)
-
         context.scale(self.scale, self.scale)
         self.current_page.render(context)
 
