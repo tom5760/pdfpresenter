@@ -50,9 +50,14 @@ class DocumentManager(object):
         return surface
 
     def draw_page(self, context):
+        context.push_group()
         context.set_source_rgb(255, 255, 255)
         context.paint()
         context.set_source_surface(self.get_page_surface())
+        context.paint()
+
+        context.pop_group_to_source()
+        context.paint()
 
     def get_scaled_size(self, width, height):
         pwidth, pheight = self.current_page.get_size()
