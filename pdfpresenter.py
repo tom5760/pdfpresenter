@@ -61,8 +61,13 @@ class DocumentManager(object):
         hscale = height / pheight
         self.scale = wscale if wscale < hscale else hscale
 
-        self.width = int(pwidth * self.scale)
-        self.height = int(pheight * self.scale)
+        new_width = int(pwidth * self.scale)
+        new_height = int(pheight * self.scale)
+        if new_width != self.width or new_height != self.height:
+            self.invalidate_cache()
+
+        self.width = new_width
+        self.height = new_height
         return self.width, self.height
 
     def offset_page(self, offset):
