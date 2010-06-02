@@ -57,17 +57,12 @@ class DocumentManager(object):
     def get_scaled_size(self, width, height):
         pwidth, pheight = self.current_page.get_size()
 
-        if width - pwidth > height - pheight:
-            self.scale = width / pwidth
-            self.width = width / self.scale
-            self.height = height
-        else:
-            self.scale = height / pheight
-            self.width = width
-            self.height = height / self.scale
+        wscale = width / pwidth
+        hscale = height / pheight
+        self.scale = wscale if wscale < hscale else hscale
 
-        self.width = int(width)
-        self.height = int(height)
+        self.width = int(pwidth * self.scale)
+        self.height = int(pheight * self.scale)
         return self.width, self.height
 
     def offset_page(self, offset):
