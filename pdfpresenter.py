@@ -95,13 +95,6 @@ class SlideWindow(gtk.Window):
 
         self.drawing = gtk.DrawingArea()
         self.drawing.connect('expose-event', self.on_expose)
-
-        #hbox = gtk.HBox()
-        ## The labels force the HBox to center the drawing area
-        #hbox.pack_start(gtk.Label(''), True, False)
-        #hbox.pack_start(self.drawing, False, False)
-        #hbox.pack_start(gtk.Label(''), True, False)
-
         self.add(self.drawing)
 
     def next_slide(self):
