@@ -32,7 +32,7 @@ class DocumentManager(object):
 
         self.pages = [None for x in xrange(document.get_n_pages())]
 
-    def get_page(self):
+    def get_page_surface(self):
         page = self.pages[self.page_number]
         if page is None:
             self.pages[self.page_number] = page = self.render_page()
@@ -51,8 +51,8 @@ class DocumentManager(object):
 
     def draw_page(self, context):
         context.set_source_rgb(255, 255, 255)
-        context.set_source_surface(self.get_page())
         context.paint()
+        context.set_source_surface(self.get_page_surface())
 
     def get_scaled_size(self, width, height):
         pwidth, pheight = self.current_page.get_size()
