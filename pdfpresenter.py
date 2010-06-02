@@ -4,6 +4,9 @@ PdfPresenter - Software for presenting PDF slideshows on dual monitors.
 By: Tom Wambold <tom5760@gmail.com>
 '''
 
+# Enable floating point division by default
+from __future__ import division
+
 import sys
 import os.path
 from datetime import time 
@@ -11,17 +14,76 @@ from datetime import time
 import gtk
 import gobject
 import poppler
+import cairo
 
 BACKGROUND_COLOR = '#000000'
 
-class SlideWindow(gtk.Window):
-    def __init__(self, document, page_number):
-        super(SlideWindow, self).__init__()
-        self.document = document
-        self.page_number = page_number
-        self.page = document.get_page(page_number)
+class DocumentManager(object):
+    'Maintains pre-rendered cairo surfaces to speed up drawing of pages.'
 
-        self.set_title(document.props.title)
+    def __init__(self, document, page_number=0):
+        self.width = 0
+        self.height = 0
+        self.scale = 0
+
+        self.document = document
+        self.current_page = document.get_page(page_number)
+        self.page_number = page_number
+
+        self.pages = [None for x in xrange(document.get_n_pages())]
+
+    def get_page(self):
+        page = self.pages[self.page_number]
+        if page is None:
+            self.pages[self.page_number] = page = self.render_page()
+        return page
+
+    def render_page(self):
+        # Scale and keep aspect ratio
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                self.width, self.height)
+        context = cairo.Context(surface)
+
+        context.scale(self.scale, self.scale)
+        self.current_page.render(context)
+
+        return surface
+
+    def draw_page(self, context):
+        context.set_source_rgb(255, 255, 255)
+        context.set_source_surface(self.get_page())
+        context.paint()
+
+    def get_scaled_size(self, width, height):
+        pwidth, pheight = self.current_page.get_size()
+
+        if width - pwidth > height - pheight:
+            self.scale = width / pwidth
+            self.width = width / self.scale
+            self.height = height
+        else:
+            self.scale = height / pheight
+            self.width = width
+            self.height = height / self.scale
+
+        self.width = int(width)
+        self.height = int(height)
+        return self.width, self.height
+
+    def offset_page(self, offset):
+        self.page_number += offset
+        if self.page_number < 0:
+            self.page_number = 0
+        elif self.page_number >= self.document.get_n_pages():
+            self.page_number = self.document.get_n_pages() - 1
+        self.current_page = self.document.get_page(self.page_number)
+
+class SlideWindow(gtk.Window):
+    def __init__(self, manager, page_number=0):
+        super(SlideWindow, self).__init__()
+        self.manager = manager
+
+        self.set_title(manager.document.props.title)
         self.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse(BACKGROUND_COLOR))
         self.add_events(gtk.gdk.KEY_PRESS_MASK |
                         gtk.gdk.BUTTON_PRESS_MASK)
@@ -29,60 +91,36 @@ class SlideWindow(gtk.Window):
         self.drawing = gtk.DrawingArea()
         self.drawing.connect('expose-event', self.on_expose)
 
-        hbox = gtk.HBox()
-        # The labels force the HBox to center the drawing area
-        hbox.pack_start(gtk.Label(''), True, False)
-        hbox.pack_start(self.drawing, False, False)
-        hbox.pack_start(gtk.Label(''), True, False)
+        #hbox = gtk.HBox()
+        ## The labels force the HBox to center the drawing area
+        #hbox.pack_start(gtk.Label(''), True, False)
+        #hbox.pack_start(self.drawing, False, False)
+        #hbox.pack_start(gtk.Label(''), True, False)
 
-        self.add(hbox)
+        self.add(self.drawing)
 
     def next_slide(self):
-        self.set_cur_page(self.page_number + 2)
+        self.manager.offset_page(2)
+        self.do_redraw()
 
     def prev_slide(self):
-        self.set_cur_page(self.page_number - 2)
-
-    def set_cur_page(self, page_number):
-        if page_number < 0 or page_number >= self.document.get_n_pages():
-            return
-
-        if page_number != self.page_number:
-            self.page = self.document.get_page(page_number)
-            self.page_number = page_number
-            self.do_redraw()
+        self.manager.offset_page(-2)
+        self.do_redraw()
 
     def on_expose(self, widget, event):
         self.do_redraw()
 
     def do_redraw(self):
-        pwidth, pheight = self.page.get_size()
-        wwidth, wheight = self.get_size()
-
-        context = self.drawing.window.cairo_create()
-
-        # Clear the page
-        context.set_source_rgb(255, 255, 255)
-        context.paint()
-
-        # Scale and keep aspect ratio
-        wscale = wwidth / pwidth
-        hscale = wheight / pheight
-        scale = wscale if wscale < hscale else hscale
-
-        self.drawing.set_size_request(int(pwidth * scale), int(pheight * scale))
-
-        # Draw the page
-        context.scale(scale, scale)
-        self.page.render(context)
+        self.drawing.set_size_request(*self.manager.get_scaled_size(*self.get_size()))
+        self.manager.draw_page(self.drawing.window.cairo_create())
 
 class PdfPresenter(object):
-    def __init__(self, pdf_path):
-        pdf_path = 'file://' + os.path.abspath(pdf_path)
-        self.document = poppler.document_new_from_file(pdf_path, None)
+    def __init__(self, pdf_url):
+        document = poppler.document_new_from_file(
+                'file://' + os.path.abspath(pdf_url), None)
 
-        self.main_window = SlideWindow(self.document, 0)
-        self.note_window = SlideWindow(self.document, 1)
+        self.main_window = SlideWindow(DocumentManager(document))
+        self.note_window = SlideWindow(DocumentManager(document, 1))
 
         self.is_fullscreen = False
 
