@@ -89,12 +89,15 @@ class SlideWindow(gtk.Window):
         self.manager = manager
 
         self.set_title(manager.document.props.title)
-        self.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse(BACKGROUND_COLOR))
+        #self.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse(BACKGROUND_COLOR))
         self.add_events(gtk.gdk.KEY_PRESS_MASK |
                         gtk.gdk.BUTTON_PRESS_MASK)
 
         self.drawing = gtk.DrawingArea()
         self.drawing.connect('expose-event', self.on_expose)
+        self.make_widgets()
+
+    def make_widgets(self):
         self.add(self.drawing)
 
     def next_slide(self):
@@ -112,13 +115,35 @@ class SlideWindow(gtk.Window):
         self.drawing.set_size_request(*self.manager.get_scaled_size(*self.get_size()))
         self.manager.draw_page(self.drawing.window.cairo_create())
 
+class NoteWindow(SlideWindow):
+    def make_widgets(self):
+        hbox = gtk.HBox()
+        hbox.pack_start(self.drawing, True, True)
+
+        vbox = gtk.VBox()
+
+        label_box = gtk.HBox()
+        label_box.add(gtk.Label('Time on slide:'))
+        self.slide_time = gtk.Label('2:30')
+        label_box.add(self.slide_time)
+        vbox.add(label_box)
+
+        label_box = gtk.HBox()
+        label_box.add(gtk.Label('Total Time:'))
+        self.total_time = gtk.Label('8:13')
+        label_box.add(self.total_time)
+        vbox.add(label_box)
+
+        hbox.pack_start(vbox, False)
+        self.add(hbox)
+
 class PdfPresenter(object):
     def __init__(self, pdf_url):
         document = poppler.document_new_from_file(
                 'file://' + os.path.abspath(pdf_url), None)
 
         self.main_window = SlideWindow(DocumentManager(document))
-        self.note_window = SlideWindow(DocumentManager(document, 1))
+        self.note_window = NoteWindow(DocumentManager(document, 1))
 
         self.is_fullscreen = False
 
